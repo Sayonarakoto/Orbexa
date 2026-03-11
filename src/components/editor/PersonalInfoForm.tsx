@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { User, Sparkles, Mail, Phone, MapPin, Globe, Camera, X } from 'lucide-react';
+import { User, Sparkles, Mail, Phone, MapPin, Globe, Camera, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,15 +7,29 @@ import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { PersonalInfo } from '@/lib/types';
 import { aiGeneratedSummaryStatement } from '@/ai/flows/ai-generated-summary-statement';
+import { validateProfilePhoto } from '@/ai/flows/validate-profile-photo-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
   onChange: (info: Partial<PersonalInfo>) => void;
 }
 
+interface ValidationStatus {
+  isValidating: boolean;
+  isCompliant: boolean | null;
+  reason?: string;
+  dimensionValid: boolean | null;
+}
+
 export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [validation, setValidation] = useState<ValidationStatus>({
+    isValidating: false,
+    isCompliant: null,
+    dimensionValid: null
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAiSummary = async () => {
@@ -34,12 +48,48 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
     }
   };
 
+  const validateDimensions = (img: HTMLImageElement): boolean => {
+    const ratio = img.width / img.height;
+    // 2x2 inch = 1:1 ratio
+    // 35x45 mm = 0.777 ratio
+    const isSquare = Math.abs(ratio - 1) < 0.05;
+    const isPassportTall = Math.abs(ratio - (35/45)) < 0.05;
+    return isSquare || isPassportTall;
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        onChange({ profileImage: reader.result as string });
+      reader.onloadend = async () => {
+        const dataUri = reader.result as string;
+        onChange({ profileImage: dataUri });
+        
+        // Client-side dimension check
+        const img = new Image();
+        img.onload = async () => {
+          const dimOk = validateDimensions(img);
+          
+          setValidation({ 
+            isValidating: true, 
+            isCompliant: null, 
+            dimensionValid: dimOk 
+          });
+
+          try {
+            const aiResult = await validateProfilePhoto({ photoDataUri: dataUri });
+            setValidation(prev => ({
+              ...prev,
+              isValidating: false,
+              isCompliant: aiResult.isCompliant,
+              reason: aiResult.reason
+            }));
+          } catch (error) {
+            console.error('Validation failed', error);
+            setValidation(prev => ({ ...prev, isValidating: false }));
+          }
+        };
+        img.src = dataUri;
       };
       reader.readAsDataURL(file);
     }
@@ -47,6 +97,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
 
   const removeImage = () => {
     onChange({ profileImage: undefined });
+    setValidation({ isValidating: false, isCompliant: null, dimensionValid: null });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -82,6 +133,39 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
           onChange={handleImageUpload} 
         />
         <p className="text-[10px] text-muted-foreground mt-2 uppercase font-bold tracking-wider">Profile Photo</p>
+        
+        {/* Photo Validation Status */}
+        {data.profileImage && (
+          <div className="mt-4 w-full max-w-sm space-y-2">
+            {validation.isValidating && (
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Loader2 size={14} className="animate-spin" />
+                Validating photo requirements...
+              </div>
+            )}
+            
+            {!validation.isValidating && validation.isCompliant === true && validation.dimensionValid === true && (
+              <Alert className="bg-green-50 border-green-200 py-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-xs font-bold text-green-800">Professional Match</AlertTitle>
+                <AlertDescription className="text-[10px] text-green-700">
+                  Photo meets posture, background, and dimension standards.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {!validation.isValidating && (validation.isCompliant === false || validation.dimensionValid === false) && (
+              <Alert variant="destructive" className="py-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="text-xs font-bold">Requirement Issue</AlertTitle>
+                <AlertDescription className="text-[10px]">
+                  {validation.dimensionValid === false && "Dimensions should be 2x2\" (1:1) or 35x45mm (7:9). "}
+                  {validation.reason || "Photo doesn't meet professional background or posture standards."}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
