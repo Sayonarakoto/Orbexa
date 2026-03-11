@@ -6,34 +6,47 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
 
   return (
     <div className="p-10 font-body text-slate-800 bg-white min-h-[1100px]">
-      <header className="mb-8 border-b-4 border-primary pb-6">
-        <h1 className="text-4xl font-headline font-bold text-slate-900 mb-4">{personalInfo.fullName || 'Your Name'}</h1>
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
-          {personalInfo.email && (
-            <div className="flex items-center gap-1">
-              <Mail size={14} className="text-primary" />
-              {personalInfo.email}
-            </div>
-          )}
-          {personalInfo.phone && (
-            <div className="flex items-center gap-1">
-              <Phone size={14} className="text-primary" />
-              {personalInfo.phone}
-            </div>
-          )}
-          {personalInfo.location && (
-            <div className="flex items-center gap-1">
-              <MapPin size={14} className="text-primary" />
-              {personalInfo.location}
-            </div>
-          )}
-          {personalInfo.website && (
-            <div className="flex items-center gap-1">
-              <Globe size={14} className="text-primary" />
-              {personalInfo.website}
-            </div>
-          )}
+      <header className="mb-8 border-b-4 border-primary pb-6 flex justify-between items-start">
+        <div className="flex-1">
+          <h1 className="text-4xl font-headline font-bold text-slate-900 mb-4">{personalInfo.fullName || 'Your Name'}</h1>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
+            {personalInfo.email && (
+              <div className="flex items-center gap-1">
+                <Mail size={14} className="text-primary" />
+                {personalInfo.email}
+              </div>
+            )}
+            {personalInfo.phone && (
+              <div className="flex items-center gap-1">
+                <Phone size={14} className="text-primary" />
+                {personalInfo.phone}
+              </div>
+            )}
+            {personalInfo.location && (
+              <div className="flex items-center gap-1">
+                <MapPin size={14} className="text-primary" />
+                {personalInfo.location}
+              </div>
+            )}
+            {personalInfo.website && (
+              <div className="flex items-center gap-1">
+                <Globe size={14} className="text-primary" />
+                {personalInfo.website}
+              </div>
+            )}
+          </div>
         </div>
+        {personalInfo.profileImage && (
+          <div className="ml-6">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/10 shadow-sm">
+              <img 
+                src={personalInfo.profileImage} 
+                alt={personalInfo.fullName} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
       </header>
 
       {personalInfo.summary && (

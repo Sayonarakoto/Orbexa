@@ -6,6 +6,17 @@ export function ExecutiveTemplate({ data }: { data: ResumeData }) {
   return (
     <div className="p-12 font-body text-gray-900 bg-white min-h-[1100px] text-center">
       <header className="mb-8 pb-4 border-b">
+        {personalInfo.profileImage && (
+          <div className="flex justify-center mb-6">
+            <div className="w-28 h-28 rounded-full overflow-hidden border border-gray-200">
+              <img 
+                src={personalInfo.profileImage} 
+                alt={personalInfo.fullName} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
         <h1 className="text-3xl font-bold uppercase tracking-wide mb-2">{personalInfo.fullName || 'YOUR NAME'}</h1>
         <div className="flex justify-center flex-wrap gap-x-4 text-sm text-gray-600">
           {personalInfo.email && <span>{personalInfo.email}</span>}

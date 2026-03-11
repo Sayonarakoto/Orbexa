@@ -34,6 +34,7 @@ export type PersonalInfo = {
   location: string;
   website: string;
   summary: string;
+  profileImage?: string;
 };
 
 export type ResumeData = {
