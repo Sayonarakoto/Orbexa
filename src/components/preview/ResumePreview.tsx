@@ -1,6 +1,8 @@
 import { ResumeData } from '@/lib/types';
 import { ModernTemplate } from './templates/Modern';
 import { ExecutiveTemplate } from './templates/Executive';
+import { CreativeTemplate } from './templates/Creative';
+import { MinimalTemplate } from './templates/Minimal';
 import { Download, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -13,6 +15,10 @@ export function ResumePreview({ data }: { data: ResumeData }) {
     switch (data.templateId) {
       case 'executive':
         return <ExecutiveTemplate data={data} />;
+      case 'creative':
+        return <CreativeTemplate data={data} />;
+      case 'minimal':
+        return <MinimalTemplate data={data} />;
       case 'modern':
       default:
         return <ModernTemplate data={data} />;
