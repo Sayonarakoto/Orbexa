@@ -1,1 +1,6 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/ai-generated-summary-statement.ts';
+import '@/ai/flows/ai-generated-experience-bullet-points.ts';
+import '@/ai/flows/ai-tailored-resume-content-flow.ts';
