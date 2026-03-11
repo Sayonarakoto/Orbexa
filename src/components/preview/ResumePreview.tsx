@@ -3,6 +3,8 @@ import { ModernTemplate } from './templates/Modern';
 import { ExecutiveTemplate } from './templates/Executive';
 import { CreativeTemplate } from './templates/Creative';
 import { MinimalTemplate } from './templates/Minimal';
+import { ATSStandardTemplate } from './templates/ATSStandard';
+import { ATSProfessionalTemplate } from './templates/ATSProfessional';
 import { Download, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -19,6 +21,10 @@ export function ResumePreview({ data }: { data: ResumeData }) {
         return <CreativeTemplate data={data} />;
       case 'minimal':
         return <MinimalTemplate data={data} />;
+      case 'ats-standard':
+        return <ATSStandardTemplate data={data} />;
+      case 'ats-pro':
+        return <ATSProfessionalTemplate data={data} />;
       case 'modern':
       default:
         return <ModernTemplate data={data} />;

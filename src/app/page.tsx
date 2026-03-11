@@ -24,6 +24,7 @@ export default function Home() {
     updateSkill,
     removeSkill,
     setTemplate,
+    setTemplateMode,
   } = useResumeData();
 
   if (!isLoaded) return null;
@@ -67,7 +68,12 @@ export default function Home() {
               <p className="text-slate-500 text-sm">Follow the sections to build your professional profile.</p>
             </div>
 
-            <TemplateSelector selectedId={data.templateId} onSelect={setTemplate} />
+            <TemplateSelector 
+              selectedId={data.templateId} 
+              selectedMode={data.templateMode}
+              onSelect={setTemplate} 
+              onModeChange={setTemplateMode}
+            />
             
             <PersonalInfoForm 
               data={data.personalInfo} 

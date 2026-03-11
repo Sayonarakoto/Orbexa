@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { ResumeData, PersonalInfo, Experience, Education, Skill } from '@/lib/types';
+import type { ResumeData, PersonalInfo, Experience, Education, Skill, TemplateMode } from '@/lib/types';
 
 const STORAGE_KEY = 'resumespark_data';
 const EXPIRATION_KEY = 'resumespark_expiration';
@@ -18,6 +18,7 @@ const initialData: ResumeData = {
   education: [],
   skills: [],
   templateId: 'modern',
+  templateMode: 'fresher',
 };
 
 export function useResumeData() {
@@ -99,6 +100,13 @@ export function useResumeData() {
     setData(prev => ({ ...prev, templateId: id }));
   };
 
+  const setTemplateMode = (mode: TemplateMode) => {
+    setData(prev => {
+      const defaultTemplate = mode === 'ats' ? 'ats-standard' : 'modern';
+      return { ...prev, templateMode: mode, templateId: defaultTemplate };
+    });
+  };
+
   return {
     data,
     isLoaded,
@@ -113,5 +121,6 @@ export function useResumeData() {
     updateSkill,
     removeSkill,
     setTemplate,
+    setTemplateMode,
   };
 }

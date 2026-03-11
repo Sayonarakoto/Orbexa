@@ -37,12 +37,15 @@ export type PersonalInfo = {
   profileImage?: string;
 };
 
+export type TemplateMode = 'fresher' | 'ats';
+
 export type ResumeData = {
   personalInfo: PersonalInfo;
   experience: Experience[];
   education: Education[];
   skills: Skill[];
   templateId: string;
+  templateMode: TemplateMode;
 };
 
 export type Template = {
