@@ -86,7 +86,7 @@ export function TemplateSelector({ selectedId, selectedMode, onSelect, onModeCha
       <div className="grid grid-cols-2 gap-4">
         {templates.map((template) => {
           const isActive = selectedId === template.id;
-          const modeColor = selectedMode === 'ats' ? 'secondary' : 'primary';
+          const isAtsMode = selectedMode === 'ats';
           
           return (
             <button
@@ -95,21 +95,39 @@ export function TemplateSelector({ selectedId, selectedMode, onSelect, onModeCha
               className={cn(
                 "group relative p-4 rounded-xl border-2 text-left transition-all duration-300 overflow-hidden",
                 isActive 
-                  ? `border-${modeColor} bg-${modeColor}/5 ring-4 ring-${modeColor}/10 translate-y-[-2px]` 
+                  ? cn(
+                      "ring-4 translate-y-[-2px]",
+                      isAtsMode 
+                        ? "border-secondary bg-secondary/5 ring-secondary/10" 
+                        : "border-primary bg-primary/5 ring-primary/10"
+                    )
                   : "border-border/60 hover:border-slate-300 hover:bg-slate-50 hover:translate-y-[-1px]"
               )}
             >
               {isActive && (
-                <div className={`absolute top-0 left-0 w-1 h-full bg-${modeColor}`} />
+                <div className={cn(
+                  "absolute top-0 left-0 w-1 h-full",
+                  isAtsMode ? "bg-secondary" : "bg-primary"
+                )} />
               )}
               <div className="flex justify-between items-start mb-2">
                 <h3 className={cn(
                   "font-headline font-bold text-sm transition-colors", 
-                  isActive ? `text-${modeColor}` : "text-foreground group-hover:text-slate-900"
+                  isActive 
+                    ? (isAtsMode ? "text-secondary" : "text-primary") 
+                    : "text-foreground group-hover:text-slate-900"
                 )}>
                   {template.name}
                 </h3>
-                {isActive && <CheckCircle2 size={16} className={`text-${modeColor} animate-in zoom-in duration-300`} />}
+                {isActive && (
+                  <CheckCircle2 
+                    size={16} 
+                    className={cn(
+                      "animate-in zoom-in duration-300",
+                      isAtsMode ? "text-secondary" : "text-primary"
+                    )} 
+                  />
+                )}
               </div>
               <p className="text-xs text-muted-foreground leading-snug group-hover:text-slate-500 transition-colors">
                 {template.description}

@@ -26,18 +26,27 @@ export function useResumeData() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    const expiration = localStorage.getItem(EXPIRATION_KEY);
+    try {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      const expiration = localStorage.getItem(EXPIRATION_KEY);
 
-    if (savedData && expiration) {
-      if (Date.now() < parseInt(expiration)) {
-        setData(JSON.parse(savedData));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(EXPIRATION_KEY);
+      if (savedData && expiration) {
+        const expTime = parseInt(expiration);
+        if (!isNaN(expTime) && Date.now() < expTime) {
+          setData(JSON.parse(savedData));
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(EXPIRATION_KEY);
+        }
       }
+    } catch (error) {
+      console.error('Failed to parse resume data from storage:', error);
+      // If data is corrupted, clear it to prevent further crashes
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(EXPIRATION_KEY);
+    } finally {
+      setIsLoaded(true);
     }
-    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
