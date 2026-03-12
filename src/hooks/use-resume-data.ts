@@ -41,7 +41,6 @@ export function useResumeData() {
       }
     } catch (error) {
       console.error('Failed to parse resume data from storage:', error);
-      // If data is corrupted, clear it to prevent further crashes
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(EXPIRATION_KEY);
     } finally {
@@ -51,8 +50,18 @@ export function useResumeData() {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      localStorage.setItem(EXPIRATION_KEY, (Date.now() + TTL_MS).toString());
+      try {
+        const serialized = JSON.stringify(data);
+        localStorage.setItem(STORAGE_KEY, serialized);
+        localStorage.setItem(EXPIRATION_KEY, (Date.now() + TTL_MS).toString());
+      } catch (error) {
+        // Handle QuotaExceededError or other storage failures gracefully
+        console.warn('LocalStorage save failed:', error);
+        if (error instanceof Error && error.name === 'QuotaExceededError') {
+          // If quota is exceeded, we might want to alert the user or try saving without the image
+          console.error('Storage quota exceeded. Resume data might be too large (likely the profile image).');
+        }
+      }
     }
   }, [data, isLoaded]);
 

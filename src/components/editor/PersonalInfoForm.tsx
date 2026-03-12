@@ -23,6 +23,40 @@ interface ValidationStatus {
   dimensionValid: boolean | null;
 }
 
+/**
+ * Resizes and compresses a Base64 image to prevent local storage quota issues.
+ */
+const compressImage = (dataUri: string, maxWidth: number = 500, maxHeight: number = 500): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      // Use JPEG with 0.7 quality to significantly reduce payload size
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.src = dataUri;
+  });
+};
+
 export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [validation, setValidation] = useState<ValidationStatus>({
@@ -50,8 +84,6 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
 
   const validateDimensions = (img: HTMLImageElement): boolean => {
     const ratio = img.width / img.height;
-    // 2x2 inch = 1:1 ratio
-    // 35x45 mm = 0.777 ratio
     const isSquare = Math.abs(ratio - 1) < 0.05;
     const isPassportTall = Math.abs(ratio - (35/45)) < 0.05;
     return isSquare || isPassportTall;
@@ -62,10 +94,12 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const dataUri = reader.result as string;
-        onChange({ profileImage: dataUri });
+        const rawDataUri = reader.result as string;
         
-        // Client-side dimension check
+        // Compress image immediately to prevent storage bloat
+        const compressedUri = await compressImage(rawDataUri);
+        onChange({ profileImage: compressedUri });
+        
         const img = new Image();
         img.onload = async () => {
           const dimOk = validateDimensions(img);
@@ -77,7 +111,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
           });
 
           try {
-            const aiResult = await validateProfilePhoto({ photoDataUri: dataUri });
+            const aiResult = await validateProfilePhoto({ photoDataUri: compressedUri });
             setValidation(prev => ({
               ...prev,
               isValidating: false,
@@ -89,7 +123,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
             setValidation(prev => ({ ...prev, isValidating: false }));
           }
         };
-        img.src = dataUri;
+        img.src = compressedUri;
       };
       reader.readAsDataURL(file);
     }
@@ -134,7 +168,6 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
         />
         <p className="text-[10px] text-muted-foreground mt-2 uppercase font-bold tracking-wider">Profile Photo</p>
         
-        {/* Photo Validation Status */}
         {data.profileImage && (
           <div className="mt-4 w-full max-w-sm space-y-2">
             {validation.isValidating && (
